@@ -1,0 +1,10 @@
+.php_cs.cache
+build
+composer.lock
+docs/Gemfile.lock
+phpunit.xml
+vendor
+reports
+.phpunit.result.cache
+.idea
+.DS_Store
