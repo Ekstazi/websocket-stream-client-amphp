@@ -59,4 +59,3 @@ $connector = connector();
 /** @var Stream $stream */
 $stream = yield $connector->connect($request, ConnectionFactory::MODE_BINARY);
 ```
-```
