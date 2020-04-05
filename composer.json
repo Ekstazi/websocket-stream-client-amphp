@@ -20,7 +20,7 @@
     "http",
     "amp",
     "amphp",
-    "amphp/websocket-client"
+    "websocket-client"
   ],
   "require": {
     "php": ">=7.2",
