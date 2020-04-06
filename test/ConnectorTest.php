@@ -10,14 +10,29 @@ use Amp\Websocket\Client\Connection as AmpConnection;
 use Amp\Websocket\Client\Connector as AmpConnector;
 use Amp\Websocket\Client\Handshake;
 use ekstazi\websocket\stream\amphp\Connector;
-use ekstazi\websocket\stream\amphp\test\helpers\StubRequest;
-
 use ekstazi\websocket\stream\ConnectionFactory;
 use ekstazi\websocket\stream\Stream;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\UriInterface;
 
 class ConnectorTest extends AsyncTestCase
 {
-    use StubRequest;
+    private function stubRequest(): RequestInterface
+    {
+        $request = $this->createStub(RequestInterface::class);
+        $uri = $this->createStub(UriInterface::class);
+        $uri->method('getScheme')
+            ->willReturn('ws');
+        $request->method('getUri')
+            ->willReturn($uri);
+
+        $request->method('getHeaders')
+            ->willReturn([
+                'test-header' => ['test'],
+            ]);
+
+        return $request;
+    }
 
     private function stubAmpConnection(): AmpConnection
     {
@@ -66,7 +81,7 @@ class ConnectorTest extends AsyncTestCase
     public function testInstanceOf()
     {
         $connector = new Connector();
-        $this->assertInstanceOf(ConnectionFactory::class, $connector);
+        self::assertInstanceOf(ConnectionFactory::class, $connector);
     }
 
     /**
@@ -82,9 +97,9 @@ class ConnectorTest extends AsyncTestCase
 
         /** @var Handshake $handshake */
         $handshake = $client->getHandshake();
-        $this->assertEquals($handshake->getUri(), $request->getUri());
-        $this->assertEquals($handshake->getHeaders(), $request->getHeaders());
-        $this->assertInstanceOf(Stream::class, $connection);
+        self::assertEquals($handshake->getUri(), $request->getUri());
+        self::assertEquals($handshake->getHeaders(), $request->getHeaders());
+        self::assertInstanceOf(Stream::class, $connection);
     }
 
     /**
@@ -98,7 +113,7 @@ class ConnectorTest extends AsyncTestCase
         $connector = new Connector();
         $connection = yield $connector->connect($request);
 
-        $this->assertInstanceOf(Handshake::class, $client->getHandshake());
+        self::assertInstanceOf(Handshake::class, $client->getHandshake());
     }
 
     /**
@@ -115,7 +130,7 @@ class ConnectorTest extends AsyncTestCase
         $connector = new Connector($client);
         $connection = yield $connector->connect($request);
 
-        $this->assertNull($clientDefault->getHandshake());
-        $this->assertInstanceOf(Handshake::class, $client->getHandshake());
+        self::assertNull($clientDefault->getHandshake());
+        self::assertInstanceOf(Handshake::class, $client->getHandshake());
     }
 }

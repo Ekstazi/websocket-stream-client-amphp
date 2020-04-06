@@ -13,12 +13,12 @@ class ConnectorFactoryTest extends TestCase
     {
         $container = $this->createMock(ContainerInterface::class);
         $container
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('has')
             ->willReturn(true);
 
         $container
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('get')
             ->willReturn(connector());
 
@@ -30,12 +30,12 @@ class ConnectorFactoryTest extends TestCase
     {
         $container = $this->createMock(ContainerInterface::class);
         $container
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('has')
             ->willReturn(false);
 
         $container
-            ->expects($this->never())
+            ->expects(self::never())
             ->method('get')
             ->willReturn(connector());
 

@@ -1,5 +1,11 @@
 # websocket-stream-client-amphp
-Websocket stream client implementation based on amphp websocket-client
+`ekstazi/websocket-stream-client-amphp` is `ekstazi/websocket-stream-client` implementation based on `amphp/websocket-client`
+# Installation
+This package can be installed as a Composer dependency.
+
+`composer require ekstazi/websocket-stream-client-amphp`
+# Requirements
+PHP 7.2+
 # Usage
 ## With container
 If you have container then add this to your `container.php`

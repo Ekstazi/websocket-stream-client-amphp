@@ -8,24 +8,11 @@ use Amp\PHPUnit\AsyncTestCase;
 use Amp\Promise;
 use Amp\Success;
 use Amp\Websocket\Client\Connection as AmpConnection;
-use Amp\Websocket\Client\Connector as Client;
-use ekstazi\websocket\stream\amphp\Connector;
-use ekstazi\websocket\stream\amphp\test\helpers\StubRequest;
+use ekstazi\websocket\stream\amphp\Connection;
 use ekstazi\websocket\stream\ConnectionFactory;
 
 class ConnectionTest extends AsyncTestCase
 {
-    use StubRequest;
-
-    private function stubClient(AmpConnection $connection)
-    {
-        $connector = $this->createMock(Client::class);
-        $connector
-            ->expects($this->once())
-            ->method('connect')
-            ->willReturn(new Success($connection));
-        return $connector;
-    }
 
     /**
      * @param Payload $data
@@ -35,7 +22,7 @@ class ConnectionTest extends AsyncTestCase
     {
         $connection = $this->createMock(AmpConnection::class);
         $connection
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('receive')
             ->willReturn(new Success($data));
         return $connection;
@@ -49,11 +36,9 @@ class ConnectionTest extends AsyncTestCase
     {
         $connection = $this->stubRead(new Payload(new InMemoryStream('test')));
 
-        $client = $this->stubClient($connection);
-        $connector = new Connector($client);
-        $connection = yield $connector->connect($this->stubRequest());
+        $connection = new Connection($connection);
         $data = yield $connection->read();
-        $this->assertEquals('test', $data);
+        self::assertEquals('test', $data);
     }
 
     /**
@@ -64,11 +49,9 @@ class ConnectionTest extends AsyncTestCase
     {
         $connection = $this->stubRead(null);
 
-        $client = $this->stubClient($connection);
-        $connector = new Connector($client);
-        $connection = yield $connector->connect($this->stubRequest());
+        $connection = new Connection($connection);
         $data = yield $connection->read();
-        $this->assertNull($data);
+        self::assertNull($data);
     }
 
     private function stubWriteConnection(string $data, string $mode = ConnectionFactory::MODE_BINARY): AmpConnection
@@ -87,13 +70,13 @@ class ConnectionTest extends AsyncTestCase
         $connection = $this->createMock(AmpConnection::class);
 
         $connection
-            ->expects($this->once())
+            ->expects(self::once())
             ->method($mainMethod)
             ->with($this->equalTo($data))
             ->willReturn(new Success());
 
         $connection
-            ->expects($this->never())
+            ->expects(self::never())
             ->method($unusedMethod);
 
         return $connection;
@@ -104,15 +87,14 @@ class ConnectionTest extends AsyncTestCase
      * @param string $mode
      * @dataProvider writeProvider
      * @return \Generator
+     * @throws
      */
     public function testWrite(string $mode)
     {
         $connection = $this->stubWriteConnection('test', $mode);
-        $client = $this->stubClient($connection);
-        $connector = new Connector($client);
-        $connection = yield $connector->connect($this->stubRequest(), $mode);
+        $connection = new Connection($connection, $mode);
         $promise = $connection->write('test');
-        $this->assertInstanceOf(Success::class, $promise);
+        self::assertInstanceOf(Success::class, $promise);
     }
 
     public function writeProvider()
@@ -127,41 +109,39 @@ class ConnectionTest extends AsyncTestCase
      * @param string $mode
      * @dataProvider writeProvider
      * @return \Generator
+     * @throws
      */
     public function testEndWithData(string $mode)
     {
         $connection = $this->stubWriteConnection('test', $mode);
-        $connection->expects($this->once())
+        $connection->expects(self::once())
             ->method('close')
             ->willReturn(new Success());
 
-        $client = $this->stubClient($connection);
-        $connector = new Connector($client);
-        $connection = yield $connector->connect($this->stubRequest(), $mode);
+        $connection = new Connection($connection, $mode);
         $promise = $connection->end('test');
-        $this->assertInstanceOf(Promise::class, $promise);
+        self::assertInstanceOf(Promise::class, $promise);
     }
 
     /**
      * @return \Generator
+     * @throws
      */
     public function testEndWithoutData()
     {
         $connection = $this->createMock(AmpConnection::class);
 
-        $connection->expects($this->never())
+        $connection->expects(self::never())
             ->method('send');
 
-        $connection->expects($this->never())
+        $connection->expects(self::never())
             ->method('sendBinary');
 
-        $connection->expects($this->once())
+        $connection->expects(self::once())
             ->method('close')
             ->willReturn(new Success());
 
-        $client = $this->stubClient($connection);
-        $connector = new Connector($client);
-        $connection = yield $connector->connect($this->stubRequest());
-        $promise = $connection->end();
+        $connection = new Connection($connection);
+        $promise = yield $connection->end();
     }
 }
