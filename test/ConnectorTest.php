@@ -9,6 +9,7 @@ use Amp\Success;
 use Amp\Websocket\Client\Connection as AmpConnection;
 use Amp\Websocket\Client\Connector as AmpConnector;
 use Amp\Websocket\Client\Handshake;
+use Amp\Websocket\Options;
 use ekstazi\websocket\stream\amphp\Connector;
 use ekstazi\websocket\stream\ConnectionFactory;
 use ekstazi\websocket\stream\Stream;
@@ -92,13 +93,18 @@ class ConnectorTest extends AsyncTestCase
     {
         $request = $this->stubRequest();
         $client = $this->stubAmpConnector(true);
+        $options = Options::createClientDefault();
+
         $connector = new Connector();
-        $connection = yield $connector->connect($request);
+        $connection = yield $connector->connect($request, ConnectionFactory::MODE_BINARY, $options);
 
         /** @var Handshake $handshake */
         $handshake = $client->getHandshake();
+
         self::assertEquals($handshake->getUri(), $request->getUri());
         self::assertEquals($handshake->getHeaders(), $request->getHeaders());
+        self::assertEquals($handshake->getOptions(), $options);
+
         self::assertInstanceOf(Stream::class, $connection);
     }
 

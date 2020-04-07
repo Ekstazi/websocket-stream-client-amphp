@@ -37,7 +37,7 @@ $stream = yield $connector->connect($request, ConnectionFactory::MODE_BINARY);
 
 ```
 
-### Without container
+## Without container
 You can use functions to do the same:
 ```php
 use \ekstazi\websocket\stream\ConnectionFactory;
@@ -64,4 +64,21 @@ $connector = connector();
 
 /** @var Stream $stream */
 $stream = yield $connector->connect($request, ConnectionFactory::MODE_BINARY);
+```
+
+## Passing additional options to connection
+```php
+use Amp\Websocket\Options;
+use \ekstazi\websocket\stream\ConnectionFactory;
+use \Psr\Http\Message\RequestInterface;
+use \ekstazi\websocket\stream\Stream;
+
+use function \ekstazi\websocket\stream\connector;
+
+/** @var RequestInterface $request */
+/** @var ConnectionFactory $connector */
+$connector = connector();
+
+/** @var Stream $stream */
+$stream = yield $connector->connect($request, ConnectionFactory::MODE_BINARY, Options::createClientDefault()->withoutHeartbeat());
 ```
