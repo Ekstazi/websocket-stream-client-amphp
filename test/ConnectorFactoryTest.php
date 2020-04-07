@@ -2,6 +2,8 @@
 
 namespace ekstazi\websocket\stream\amphp\test;
 
+use Amp\Websocket\Client\Connector as AmpConnector;
+use Amp\Websocket\Options;
 use ekstazi\websocket\stream\amphp\ConnectorFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
@@ -13,14 +15,19 @@ class ConnectorFactoryTest extends TestCase
     {
         $container = $this->createMock(ContainerInterface::class);
         $container
-            ->expects(self::once())
+            ->expects(self::atLeastOnce())
             ->method('has')
             ->willReturn(true);
 
         $container
-            ->expects(self::once())
+            ->expects(self::atLeastOnce())
             ->method('get')
-            ->willReturn(connector());
+            ->withConsecutive([AmpConnector::class], ['config'])
+            ->willReturnOnConsecutiveCalls(connector(), [
+                "websocket" => [
+                    'clientOptions' => Options::createClientDefault(),
+                ]
+            ]);
 
         $factory = new ConnectorFactory();
         $factory->__invoke($container);
@@ -30,7 +37,7 @@ class ConnectorFactoryTest extends TestCase
     {
         $container = $this->createMock(ContainerInterface::class);
         $container
-            ->expects(self::once())
+            ->expects(self::atLeastOnce())
             ->method('has')
             ->willReturn(false);
 

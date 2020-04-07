@@ -14,6 +14,10 @@ class ConnectorFactory
             ? $container->get(AmpConnector::class)
             : null;
 
-        return new Connector($client);
+        $config = $container->has('config') ? $container->get('config') : [];
+        $config = $config['websocket'] ?? [];
+        $options = $config['clientOptions'] ?? null;
+
+        return new Connector($client, $options);
     }
 }

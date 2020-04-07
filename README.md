@@ -10,6 +10,7 @@ PHP 7.2+
 ## With container
 If you have container then add this to your `container.php`
 ```php
+use Amp\Websocket\Options;
 use \ekstazi\websocket\stream\amphp\ConnectorFactory;
 use \ekstazi\websocket\stream\ConnectionFactory;
 
@@ -17,6 +18,11 @@ use \ekstazi\websocket\stream\ConnectionFactory;
 
 return [
     ConnectionFactory::class => new ConnectorFactory(),
+    "config" => [
+        "websocket" => [
+            'clientOptions' => Options::createClientDefault(),
+        ]
+    ]
 ];
 ```
 Then in your code:
@@ -82,7 +88,7 @@ $connector = connector();
 /** @var Stream $stream */
 $stream = yield $connector->connect($request, ConnectionFactory::MODE_BINARY, Options::createClientDefault()->withoutHeartbeat());
 ```
-## set default options to all connections
+## Set default options to all connections
 The default options can be overridden as shown in above example
 ```php
 use Amp\Websocket\Options;
