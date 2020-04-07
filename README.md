@@ -82,3 +82,19 @@ $connector = connector();
 /** @var Stream $stream */
 $stream = yield $connector->connect($request, ConnectionFactory::MODE_BINARY, Options::createClientDefault()->withoutHeartbeat());
 ```
+## set default options to all connections
+The default options can be overridden as shown in above example
+```php
+use Amp\Websocket\Options;
+use ekstazi\websocket\stream\amphp\Connector;
+use \ekstazi\websocket\stream\ConnectionFactory;
+use \Psr\Http\Message\RequestInterface;
+use \ekstazi\websocket\stream\Stream;
+
+/** @var RequestInterface $request */
+/** @var ConnectionFactory $connector */
+$connector = new Connector(null, Options::createClientDefault());
+
+/** @var Stream $stream */
+$stream = yield $connector->connect($request, ConnectionFactory::MODE_BINARY);
+```

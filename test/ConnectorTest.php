@@ -112,7 +112,7 @@ class ConnectorTest extends AsyncTestCase
      * Test that default rfc 6455 connector is used.
      * @return \Generator
      */
-    public function testConstructDefault()
+    public function testConstructDefaultClient()
     {
         $request = $this->stubRequest();
         $client = $this->stubAmpConnector(true);
@@ -120,6 +120,22 @@ class ConnectorTest extends AsyncTestCase
         $connection = yield $connector->connect($request);
 
         self::assertInstanceOf(Handshake::class, $client->getHandshake());
+    }
+
+    /**
+     * Test that default rfc 6455 connector is used.
+     * @return \Generator
+     */
+    public function testConstructDefaultOptions()
+    {
+        $request = $this->stubRequest();
+        $client = $this->stubAmpConnector(true);
+        $options = Options::createClientDefault();
+        $connector = new Connector(null, $options);
+        $connection = yield $connector->connect($request);
+
+        self::assertInstanceOf(Handshake::class, $client->getHandshake());
+        self::assertEquals($options, $client->getHandshake()->getOptions());
     }
 
     /**

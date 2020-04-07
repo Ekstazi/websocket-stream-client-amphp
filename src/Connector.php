@@ -18,15 +18,21 @@ class Connector implements ConnectionFactory
      * @var AmpConnector
      */
     private $connector;
+    /**
+     * @var Options
+     */
+    private $defaultOptions;
 
-    public function __construct(AmpConnector $connector = null)
+    public function __construct(AmpConnector $connector = null, Options $defaultOptions = null)
     {
         $this->connector = $connector ?? connector();
+        $this->defaultOptions = $defaultOptions;
     }
 
     public function connect(RequestInterface $request, string $mode = self::MODE_BINARY, Options $options = null): Promise
     {
         return call(function () use ($request, $mode, $options) {
+            $options = $options ?? $this->defaultOptions;
             $handshake = new Handshake($request->getUri(), $options);
             $connection = yield $this->connector->connect($handshake->withHeaders($request->getHeaders()));
             return new Connection($connection, $mode);
