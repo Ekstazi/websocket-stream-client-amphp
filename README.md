@@ -18,6 +18,7 @@ use \ekstazi\websocket\stream\ConnectionFactory;
 
 return [
     ConnectionFactory::class => new ConnectorFactory(),
+    // this is optional config for default options to connections
     "config" => [
         "websocket" => [
             'clientOptions' => Options::createClientDefault(),
