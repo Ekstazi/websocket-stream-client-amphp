@@ -37,8 +37,7 @@ final class Connector implements ConnectionFactory
             $options = $options ?? $this->defaultOptions;
             $handshake = new Handshake($request->getUri(), $options);
             $client = yield $this->connector->connect($handshake->withHeaders($request->getHeaders()));
-            $adapter = BaseConnection::create($client, $defaultMode);
-            return new Connection($adapter);
+            return Connection::create($client, $defaultMode);
         });
     }
 }

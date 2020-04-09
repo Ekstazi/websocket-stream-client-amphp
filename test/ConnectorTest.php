@@ -37,16 +37,9 @@ class ConnectorTest extends AsyncTestCase
         return $request;
     }
 
-    private function stubClient($asDefault = true): Client
+    private function stubClient(): Client
     {
-        $client = $this->createMock(Client::class);
-        $client->expects($asDefault ? self::once() : self::never())
-            ->method('getRemoteAddress')
-            ->willReturn(new SocketAddress('127.0.0.2', 8000));
-        $client->expects($asDefault ? self::once() : self::never())
-            ->method('getId')
-            ->willReturn(1);
-        return $client;
+        return $this->createMock(Client::class);
     }
 
 

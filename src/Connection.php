@@ -2,54 +2,26 @@
 
 namespace ekstazi\websocket\client\amphp;
 
-use Amp\Promise;
+use Amp\Websocket\Client;
 use ekstazi\websocket\client\Connection as ConnectionInterface;
-use ekstazi\websocket\common\Connection as BaseConnection;
+use ekstazi\websocket\common\amphp\Reader;
+use ekstazi\websocket\common\amphp\Writer;
+use ekstazi\websocket\common\internal\Connection as BaseConnection;
 
-final class Connection implements ConnectionInterface
+final class Connection extends BaseConnection implements ConnectionInterface
 {
+
     /**
-     * @var BaseConnection
+     * Create stream from client.
+     * @param Client $client
+     * @param string $defaultMode
+     * @return Connection
      */
-    private $connection;
-
-    public function __construct(BaseConnection $connection)
+    public static function create(Client $client, string $defaultMode = Writer::MODE_BINARY): self
     {
-        $this->connection = $connection;
-    }
-
-    public function getId(): int
-    {
-        return $this->connection->getId();
-    }
-
-    public function getRemoteAddress(): string
-    {
-        return $this->connection->getRemoteAddress();
-    }
-
-    public function read(): Promise
-    {
-        return $this->connection->read();
-    }
-
-    public function setDefaultMode(string $defaultMode): void
-    {
-        $this->connection->setDefaultMode($defaultMode);
-    }
-
-    public function getDefaultMode(): string
-    {
-        return $this->connection->getDefaultMode();
-    }
-
-    public function write(string $data, string $mode = null): Promise
-    {
-        return $this->connection->write($data, $mode);
-    }
-
-    public function end(string $finalData = "", string $mode = null): Promise
-    {
-        return $this->connection->end($finalData, $mode);
+        return new static(
+            new Reader($client),
+            new Writer($client, $defaultMode)
+        );
     }
 }
