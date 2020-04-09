@@ -14,7 +14,7 @@ use Psr\Http\Message\RequestInterface;
 use function Amp\call;
 use function Amp\Websocket\Client\connector;
 
-class Connector implements ConnectionFactory
+final class Connector implements ConnectionFactory
 {
     /**
      * @var AmpConnector

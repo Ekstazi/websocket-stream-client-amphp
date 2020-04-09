@@ -6,7 +6,7 @@ use Amp\Promise;
 use ekstazi\websocket\client\Connection as ConnectionInterface;
 use ekstazi\websocket\common\Connection as BaseConnection;
 
-class Connection implements ConnectionInterface
+final class Connection implements ConnectionInterface
 {
     /**
      * @var BaseConnection

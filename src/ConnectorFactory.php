@@ -6,7 +6,7 @@ use Amp\Websocket\Client\Connector as AmpConnector;
 use ekstazi\websocket\client\ConnectionFactory;
 use Psr\Container\ContainerInterface;
 
-class ConnectorFactory
+final class ConnectorFactory
 {
     public function __invoke(ContainerInterface $container): ConnectionFactory
     {
