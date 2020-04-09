@@ -1,10 +1,10 @@
 <?php
 
-namespace ekstazi\websocket\stream\amphp\test;
+namespace ekstazi\websocket\client\amphp\test;
 
 use Amp\Websocket\Client\Connector as AmpConnector;
 use Amp\Websocket\Options;
-use ekstazi\websocket\stream\amphp\ConnectorFactory;
+use ekstazi\websocket\client\amphp\ConnectorFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use function Amp\Websocket\Client\connector;

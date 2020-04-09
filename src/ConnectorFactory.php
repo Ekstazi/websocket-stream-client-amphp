@@ -1,9 +1,9 @@
 <?php
 
-namespace ekstazi\websocket\stream\amphp;
+namespace ekstazi\websocket\client\amphp;
 
 use Amp\Websocket\Client\Connector as AmpConnector;
-use ekstazi\websocket\stream\ConnectionFactory;
+use ekstazi\websocket\client\ConnectionFactory;
 use Psr\Container\ContainerInterface;
 
 class ConnectorFactory

@@ -1,18 +1,20 @@
 <?php
 
-namespace ekstazi\websocket\stream\amphp\test;
+namespace ekstazi\websocket\client\amphp\test;
 
 use Amp\CancellationToken;
 use Amp\PHPUnit\AsyncTestCase;
 use Amp\Promise;
+use Amp\Socket\SocketAddress;
 use Amp\Success;
-use Amp\Websocket\Client\Connection as AmpConnection;
+
+use Amp\Websocket\Client;
 use Amp\Websocket\Client\Connector as AmpConnector;
 use Amp\Websocket\Client\Handshake;
 use Amp\Websocket\Options;
-use ekstazi\websocket\stream\amphp\Connector;
-use ekstazi\websocket\stream\ConnectionFactory;
-use ekstazi\websocket\stream\Stream;
+use ekstazi\websocket\client\amphp\Connector;
+use ekstazi\websocket\client\ConnectionFactory;
+use ekstazi\websocket\common\Connection;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\UriInterface;
 
@@ -35,23 +37,31 @@ class ConnectorTest extends AsyncTestCase
         return $request;
     }
 
-    private function stubAmpConnection(): AmpConnection
+    private function stubClient($asDefault = true): Client
     {
-        return $this->createStub(AmpConnection::class);
+        $client = $this->createMock(Client::class);
+        $client->expects($asDefault ? self::once() : self::never())
+            ->method('getRemoteAddress')
+            ->willReturn(new SocketAddress('127.0.0.2', 8000));
+        $client->expects($asDefault ? self::once() : self::never())
+            ->method('getId')
+            ->willReturn(1);
+        return $client;
     }
 
 
-    private function stubAmpConnector($registerAsDefault = true)
+    private function stubAmpConnector($registerAsDefault = true, Client $client = null)
     {
-        $connector = new class($this->stubAmpConnection()) implements AmpConnector {
+        $client = $client ?? $this->stubClient();
+        $connector = new class($client) implements AmpConnector {
             /**
-             * @var AmpConnection
+             * @var Client
              */
             private $connection;
 
             private $handshake;
 
-            public function __construct(AmpConnection $connection)
+            public function __construct(Client $connection)
             {
                 $this->connection = $connection;
             }
@@ -96,7 +106,7 @@ class ConnectorTest extends AsyncTestCase
         $options = Options::createClientDefault();
 
         $connector = new Connector();
-        $connection = yield $connector->connect($request, ConnectionFactory::MODE_BINARY, $options);
+        $connection = yield $connector->connect($request, Connection::MODE_BINARY, $options);
 
         /** @var Handshake $handshake */
         $handshake = $client->getHandshake();
@@ -105,7 +115,7 @@ class ConnectorTest extends AsyncTestCase
         self::assertEquals($handshake->getHeaders(), $request->getHeaders());
         self::assertEquals($handshake->getOptions(), $options);
 
-        self::assertInstanceOf(Stream::class, $connection);
+        self::assertInstanceOf(Connection::class, $connection);
     }
 
     /**
@@ -145,10 +155,10 @@ class ConnectorTest extends AsyncTestCase
     public function testConstructInstance()
     {
         $request = $this->stubRequest();
+        $rfcClient = $this->stubClient();
+        $clientDefault = $this->stubAmpConnector(true, $rfcClient);
 
-        $clientDefault = $this->stubAmpConnector(true);
-
-        $client = $this->stubAmpConnector(false);
+        $client = $this->stubAmpConnector(false, $rfcClient);
         $connector = new Connector($client);
         $connection = yield $connector->connect($request);
 

@@ -1,70 +1,55 @@
 <?php
 
-namespace ekstazi\websocket\stream\amphp;
+namespace ekstazi\websocket\client\amphp;
 
 use Amp\Promise;
-use Amp\Websocket\Client\Connection as AmpConnection;
-use Amp\Websocket\Message;
-use ekstazi\websocket\stream\ConnectionFactory;
-use ekstazi\websocket\stream\Stream;
-use function Amp\call;
+use ekstazi\websocket\client\Connection as ConnectionInterface;
+use ekstazi\websocket\common\Connection as BaseConnection;
 
-class Connection implements Stream
+class Connection implements ConnectionInterface
 {
     /**
-     * @var AmpConnection
+     * @var BaseConnection
      */
     private $connection;
-    /**
-     * @var string
-     */
-    private $mode;
 
-    public function __construct(AmpConnection $connection, string $mode = ConnectionFactory::MODE_BINARY)
+    public function __construct(BaseConnection $connection)
     {
         $this->connection = $connection;
-        $this->mode = $mode;
     }
 
-    /**
-     * @inheritDoc
-     */
+    public function getId(): int
+    {
+        return $this->connection->getId();
+    }
+
+    public function getRemoteAddress(): string
+    {
+        return $this->connection->getRemoteAddress();
+    }
+
     public function read(): Promise
     {
-        return call(function () {
-            /** @var Message $frame */
-            $frame = yield $this->connection->receive();
-            if (!$frame) {
-                return null;
-            }
-            return $frame->buffer();
-        });
+        return $this->connection->read();
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function write(string $data): Promise
+    public function setDefaultMode(string $defaultMode): void
     {
-        switch ($this->mode) {
-            case ConnectionFactory::MODE_BINARY:
-                return $this->connection->sendBinary($data);
-            case ConnectionFactory::MODE_TEXT:
-            default:
-                return $this->connection->send($data);
-        }
+        $this->connection->setDefaultMode($defaultMode);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function end(string $finalData = ""): Promise
+    public function getDefaultMode(): string
     {
-        return call(function () use ($finalData) {
-            if ($finalData) {
-                yield $this->write($finalData);
-            }
-            return $this->connection->close();
-        });
+        return $this->connection->getDefaultMode();
+    }
+
+    public function write(string $data, string $mode = null): Promise
+    {
+        return $this->connection->write($data, $mode);
+    }
+
+    public function end(string $finalData = "", string $mode = null): Promise
+    {
+        return $this->connection->end($finalData, $mode);
     }
 }

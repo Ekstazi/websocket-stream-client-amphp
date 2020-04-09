@@ -24,7 +24,8 @@
   ],
   "require": {
     "php": ">=7.2",
-    "ekstazi/websocket-stream-client": "^1.0",
+    "ekstazi/websocket-stream-client": "^2.0",
+    "ekstazi/websocket-common-amphp": "^2.0",
     "amphp/websocket-client": "^1",
     "psr/container": "^1.0"
   },
@@ -39,7 +40,7 @@
   "minimum-stability": "RC",
   "autoload": {
     "psr-4": {
-      "ekstazi\\websocket\\stream\\amphp\\": "src"
+      "ekstazi\\websocket\\client\\amphp\\": "src"
     },
     "files": [
       "src/functions.php"
@@ -47,7 +48,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "ekstazi\\websocket\\stream\\amphp\\test\\": "test"
+      "ekstazi\\websocket\\client\\amphp\\test\\": "test"
     }
   },
   "scripts": {

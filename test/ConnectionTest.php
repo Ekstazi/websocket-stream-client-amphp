@@ -1,29 +1,26 @@
 <?php
 
-namespace ekstazi\websocket\stream\amphp\test;
+namespace ekstazi\websocket\client\amphp\test;
 
-use Amp\ByteStream\InMemoryStream;
 use Amp\ByteStream\Payload;
 use Amp\PHPUnit\AsyncTestCase;
-use Amp\Promise;
 use Amp\Success;
-use Amp\Websocket\Client\Connection as AmpConnection;
-use ekstazi\websocket\stream\amphp\Connection;
-use ekstazi\websocket\stream\ConnectionFactory;
+use ekstazi\websocket\client\amphp\Connection;
+use ekstazi\websocket\common\Connection as BaseConnection;
 
 class ConnectionTest extends AsyncTestCase
 {
 
     /**
      * @param Payload $data
-     * @return AmpConnection
+     * @return BaseConnection
      */
-    private function stubRead(Payload $data = null): AmpConnection
+    private function stubRead(Payload $data = null): BaseConnection
     {
-        $connection = $this->createMock(AmpConnection::class);
+        $connection = $this->createMock(BaseConnection::class);
         $connection
             ->expects(self::once())
-            ->method('receive')
+            ->method('read')
             ->willReturn(new Success($data));
         return $connection;
     }
@@ -31,117 +28,94 @@ class ConnectionTest extends AsyncTestCase
     /**
      * Test that data readed from websocket client.
      * @return \Generator
+     * @throws
      */
-    public function testReadSuccess()
+    public function testRead()
     {
-        $connection = $this->stubRead(new Payload(new InMemoryStream('test')));
+        $client = $this->createMock(BaseConnection::class);
+        $client->expects(self::once())
+            ->method('read')
+            ->willReturn(new Success('test'));
 
-        $connection = new Connection($connection);
+        $connection = new Connection($client);
         $data = yield $connection->read();
         self::assertEquals('test', $data);
     }
 
     /**
-     * Test that null returned when websocket client was closed.
-     * @return \Generator
-     */
-    public function testReadClose()
-    {
-        $connection = $this->stubRead(null);
-
-        $connection = new Connection($connection);
-        $data = yield $connection->read();
-        self::assertNull($data);
-    }
-
-    private function stubWriteConnection(string $data, string $mode = ConnectionFactory::MODE_BINARY): AmpConnection
-    {
-        switch ($mode) {
-            case ConnectionFactory::MODE_BINARY:
-                $mainMethod = 'sendBinary';
-                $unusedMethod = 'send';
-                break;
-            case ConnectionFactory::MODE_TEXT:
-            default:
-                $mainMethod = 'send';
-                $unusedMethod = 'sendBinary';
-
-        }
-        $connection = $this->createMock(AmpConnection::class);
-
-        $connection
-            ->expects(self::once())
-            ->method($mainMethod)
-            ->with($this->equalTo($data))
-            ->willReturn(new Success());
-
-        $connection
-            ->expects(self::never())
-            ->method($unusedMethod);
-
-        return $connection;
-    }
-
-    /**
      * Test write method with data and different modes.
-     * @param string $mode
-     * @dataProvider writeProvider
      * @return \Generator
      * @throws
      */
-    public function testWrite(string $mode)
+    public function testWrite()
     {
-        $connection = $this->stubWriteConnection('test', $mode);
-        $connection = new Connection($connection, $mode);
-        $promise = $connection->write('test');
-        self::assertInstanceOf(Success::class, $promise);
-    }
-
-    public function writeProvider()
-    {
-        return [
-            'binary mode' => [ConnectionFactory::MODE_BINARY],
-            'text mode' => [ConnectionFactory::MODE_TEXT],
-        ];
-    }
-
-    /**
-     * @param string $mode
-     * @dataProvider writeProvider
-     * @return \Generator
-     * @throws
-     */
-    public function testEndWithData(string $mode)
-    {
-        $connection = $this->stubWriteConnection('test', $mode);
-        $connection->expects(self::once())
-            ->method('close')
+        $client = $this->createMock(BaseConnection::class);
+        $client->expects(self::once())
+            ->method('write')
+            ->with('test', Connection::MODE_BINARY)
             ->willReturn(new Success());
 
-        $connection = new Connection($connection, $mode);
-        $promise = $connection->end('test');
-        self::assertInstanceOf(Promise::class, $promise);
+        $connection = new Connection($client);
+        yield $connection->write('test', Connection::MODE_BINARY);
     }
 
     /**
      * @return \Generator
      * @throws
      */
-    public function testEndWithoutData()
+    public function testEnd()
     {
-        $connection = $this->createMock(AmpConnection::class);
-
-        $connection->expects(self::never())
-            ->method('send');
-
-        $connection->expects(self::never())
-            ->method('sendBinary');
-
-        $connection->expects(self::once())
-            ->method('close')
+        $client = $this->createMock(BaseConnection::class);
+        $client->expects(self::once())
+            ->method('end')
+            ->with('test', Connection::MODE_BINARY)
             ->willReturn(new Success());
 
-        $connection = new Connection($connection);
-        $promise = yield $connection->end();
+        $connection = new Connection($client);
+        yield $connection->end('test', Connection::MODE_BINARY);
+    }
+
+    public function testSetDefaultMode()
+    {
+        $client = $this->createMock(BaseConnection::class);
+        $client->expects(self::once())
+            ->method('setDefaultMode')
+            ->with(Connection::MODE_BINARY);
+
+        $connection = new Connection($client);
+        $connection->setDefaultMode(Connection::MODE_BINARY);
+    }
+
+    public function testGetDefaultMode()
+    {
+        $client = $this->createMock(BaseConnection::class);
+        $client->expects(self::once())
+            ->method('getDefaultMode')
+            ->willReturn(Connection::MODE_BINARY);
+
+        $connection = new Connection($client);
+        self::assertEquals(Connection::MODE_BINARY, $connection->getDefaultMode());
+    }
+
+    public function testGetRemoteAddress()
+    {
+        $client = $this->createMock(BaseConnection::class);
+        $client->expects(self::once())
+            ->method('getRemoteAddress')
+            ->willReturn('127.0.0.2');
+
+        $connection = new Connection($client);
+        self::assertEquals('127.0.0.2', $connection->getRemoteAddress());
+    }
+
+    public function testGetId()
+    {
+        $client = $this->createMock(BaseConnection::class);
+        $client->expects(self::once())
+            ->method('getId')
+            ->willReturn(1);
+
+        $connection = new Connection($client);
+        self::assertEquals(1, $connection->getId());
     }
 }

@@ -1,10 +1,10 @@
 <?php
 
-namespace ekstazi\websocket\stream;
+namespace ekstazi\websocket\client;
 
 use Amp\Loop;
 use Amp\Promise;
-use ekstazi\websocket\stream\amphp\Connector;
+use ekstazi\websocket\client\amphp\Connector;
 use Psr\Http\Message\RequestInterface;
 
 const LOOP_CONNECTOR_IDENTIFIER = ConnectionFactory::class;
@@ -34,10 +34,10 @@ function connector(?Connector $connector = null): Connector
 /**
  * @param RequestInterface $request
  * @param string $mode
- * @return Promise<Stream>
+ * @return Promise<Connection>
  * @throws
  */
-function connect(RequestInterface $request, string $mode = ConnectionFactory::MODE_BINARY): Promise
+function connect(RequestInterface $request, string $mode = Connection::MODE_BINARY): Promise
 {
     return connector()->connect($request, $mode);
 }

@@ -1,14 +1,16 @@
 <?php
 
-namespace ekstazi\websocket\stream\amphp;
+namespace ekstazi\websocket\client\amphp;
 
 use Amp\Promise;
 use Amp\Websocket\Client\Connector as AmpConnector;
 use Amp\Websocket\Client\Handshake;
 
 use Amp\Websocket\Options;
-use ekstazi\websocket\stream\ConnectionFactory;
+use ekstazi\websocket\client\ConnectionFactory;
+use ekstazi\websocket\common\amphp\Connection as BaseConnection;
 use Psr\Http\Message\RequestInterface;
+
 use function Amp\call;
 use function Amp\Websocket\Client\connector;
 
@@ -29,13 +31,14 @@ class Connector implements ConnectionFactory
         $this->defaultOptions = $defaultOptions;
     }
 
-    public function connect(RequestInterface $request, string $mode = self::MODE_BINARY, Options $options = null): Promise
+    public function connect(RequestInterface $request, string $defaultMode = Connection::MODE_BINARY, Options $options = null): Promise
     {
-        return call(function () use ($request, $mode, $options) {
+        return call(function () use ($request, $defaultMode, $options) {
             $options = $options ?? $this->defaultOptions;
             $handshake = new Handshake($request->getUri(), $options);
-            $connection = yield $this->connector->connect($handshake->withHeaders($request->getHeaders()));
-            return new Connection($connection, $mode);
+            $client = yield $this->connector->connect($handshake->withHeaders($request->getHeaders()));
+            $adapter = BaseConnection::create($client, $defaultMode);
+            return new Connection($adapter);
         });
     }
 }
